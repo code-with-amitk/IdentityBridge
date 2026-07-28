@@ -1,12 +1,12 @@
 
 JIMS
 - [Collect & store Identity Information](#collect)
--- [Collector](#Collector)
--- [Rust Server](#Server)
+  - [Collector](#Collector)
+  - [Rust Server](#Server)
 - [Firewall queries Server](#Firewall)
--- [IP Query](#ip)
--- [User Query](#User)
--- [Batch Query](#Batch)
+  - [IP Query](#ip)
+  - [User Query](#User)
+  - [Batch Query](#Batch)
 
 
 ## Juniper Identity Management Service (JIMS)
