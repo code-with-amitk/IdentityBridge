@@ -21,7 +21,7 @@ cargo run -p collector-bin
 
 Open `http://127.0.0.1:8080/` on the Collector host (RDP/console).
 
-See [docs/collector/HTTP.md](docs/collector/HTTP.md) for the HTTP server, middleware chain, and Windows Service install.
+See [Documentation/Collector/Running.md](Documentation/Collector/Running.md) for CLI flow, WSL vs Windows steps, and Windows Service install.
 
 ## Documentation
 
@@ -30,5 +30,6 @@ See [docs/collector/HTTP.md](docs/collector/HTTP.md) for the HTTP server, middle
     - [Java-based collector (reference)](Documentation/Moving_JIMS_Collector_From_Java_to_Rust.md)
 - Collector
     - [Architecture](Documentation/Collector/Architecture.md)
+    - [Running](Documentation/Collector/Running.md)
 - Server
     - [Architecture](Documentation/Server/Architecture.md)
