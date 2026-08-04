@@ -41,4 +41,10 @@ cd C:\IdentityBridge
 cargo build -p collector-bin --release
 dir target\release\collector.exe
 ```
-4. Double click `collector.exe` to install
+4. Install
+```bash
+Open Powershell Admin 
+> collector.exe install --config C:\IdentityBridge\configs\collector.yaml
+```
+
+![ImgUrl](/images/collector_installed_as_service.png)
