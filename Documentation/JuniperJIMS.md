@@ -20,46 +20,41 @@ JIMS
 <a name=Collector></a>
 
 ### Collector
-Collects below information from AD,DC,syslog & sends to server
 
-**username ↔ groups** // AD/Azure sync (no IP yet) 
-```c
-Domain: `CORP.EXAMPLE.COM`
-Username: `alice`
-UPN: `alice@corp.example.com`
-Groups: `Engineering`, `VPN-Users`, `Domain Users`
+**User to groupname mapping**
+```bash
+// AD,DC,syslog/Azure
+Domain: test.com
+Username: alice
+UPN: alice@test.com
+Groups: ["Engineering", "VPN-Users"]
 ```
 
-**IP ↔ username**
-
-- Src1: DC Security Log(Login event)
-```json
-IP address: `10.1.2.50`
-Username `CORP\alice`
+**User to IP mapping**
+```bash
+// DC Security logs (Login events)
+IP address: 1.2.3.4
+Username: TEST\alice
 Logon type: `3` (network logon) or `2` (interactive)
 Workstation: `DESKTOP-ABC`
 Event: login (logout = Event 4634/4647)
-```
 
-- Src2: Syslog from VPN concentrator
-```c
-alice@corp.example.com logged in from 203.0.113.45
-```
+// syslog
+alice@test.com logged in from 2.3.4.5
 
-- Src3: Device-only session (machine account)
-```
-`10.1.2.75` | `DESKTOP-XYZ.CORP.EXAMPLE.COM` | `Workstations`, `Engineering-Devices` |
+// machine account
+3.4.5.6 | `DESKTOP-XYZ.CORP.EXAMPLE.COM` | `Workstations`, `Engineering-Devices` |
 ```
 
 <a name=Server></a>
 
-### Rust Server (Aggregate + DB Store)
+### Rust Server
 Create Session record from recieved identity information and store in DB
 ```json
 {
-  "ip": "10.1.2.50",
+  "ip": "1.2.3.4",
   "username": "alice",
-  "domain": "CORP.EXAMPLE.COM",
+  "domain": "test.com",
   "device": "DESKTOP-ABC",
   "groups": ["Engineering", "VPN-Users", "Domain Users"],
   "state": "active",

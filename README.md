@@ -12,17 +12,6 @@ Compared to JIMS (C++ collector + MFC admin UI on Windows), Identity Bridge is b
 
 **Terminology:** **Collector** and **Server** are the two main components. *JIMS Collector* is the legacy name for the same on-prem role.
 
-## Quick start (Collector)
-
-```bash
-cp configs/collector.example.yaml configs/collector.yaml
-cargo run -p collector-bin
-```
-
-Open `http://127.0.0.1:8080/` on the Collector host (RDP/console).
-
-See [Documentation/Collector/Running.md](Documentation/Collector/Running.md) for CLI flow, WSL vs Windows steps, and Windows Service install.
-
 ## Documentation
 
 - [Juniper JIMS overview](Documentation/JuniperJIMS.md)
@@ -30,6 +19,6 @@ See [Documentation/Collector/Running.md](Documentation/Collector/Running.md) for
     - [Java-based collector (reference)](Documentation/Moving_JIMS_Collector_From_Java_to_Rust.md)
 - Collector
     - [Architecture](Documentation/Collector/Architecture.md)
-    - [Running](Documentation/Collector/Running.md)
+    - [Build and install on windows](Documentation/Collector/Start_Collector.md)
 - Server
     - [Architecture](Documentation/Server/Architecture.md)

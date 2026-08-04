@@ -1,0 +1,44 @@
+# Collector configuration example.
+# Copy to configs/collector.yaml and adjust for your environment.
+#
+# Schema reference: crates/collector/src/config.rs
+
+tenant_id: "00000000-0000-0000-0000-000000000001"
+collector_id: "collector-dc1-01"
+
+http:
+  # Local admin — HTML pages and /api/v1/* (HTTP, localhost only).
+  bind: "127.0.0.1:8080"
+  static_dir: "web/static"
+
+auth:
+  # Override in production via COLLECTOR_JWT_SECRET env var.
+  jwt_secret: "change-me-in-production"
+  require_local_login: true
+  login_rate_limit_per_minute: 10
+  ad_bind_login: null
+
+ad:
+  enabled: true
+  domain: "corp.local"
+  ldap_uris:
+    - "ldaps://dc1.corp.local:636"
+    - "ldaps://dc2.corp.local:636"
+  base_dn: "DC=corp,DC=local"
+  bind_dn: "CN=svc-identity-bridge,OU=Service Accounts,DC=corp,DC=local"
+  # Env var name or Windows Credential Manager key — not plaintext in production.
+  bind_password_ref: "COLLECTOR_AD_BIND_PASSWORD"
+  sync_interval_secs: 3600
+  page_size: 1000
+  use_usn_changed: true
+
+server:
+  ingest_base_url: "https://server.example.com"
+  api_key_ref: "COLLECTOR_SERVER_API_KEY"
+  mtls_cert_path: null
+  mtls_key_path: null
+  heartbeat_interval_secs: 60
+
+logging:
+  level: "info"
+  format: "text"
