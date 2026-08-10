@@ -1,0 +1,12 @@
+{
+  "editor.inlayHints.enabled": "on",
+  "[rust]": {
+    "editor.inlayHints.enabled": "on"
+  },
+  "rust-analyzer.inlayHints.typeHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
+  "rust-analyzer.inlayHints.closingBraceHints.enable": true,
+  "rust-analyzer.inlayHints.lifetimeElisionHints.enable": "always",
+  "rust-analyzer.inlayHints.bindingModeHints.enable": true
+}
