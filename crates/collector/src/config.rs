@@ -15,6 +15,7 @@ pub struct CollectorConfig {
     pub auth: AuthConfig,
     pub ad: AdConfig,
     pub server: ServerConfig,
+    pub store: StoreConfig,
     pub logging: LoggingConfig,
 }
 
@@ -50,11 +51,19 @@ pub struct AdBindLoginConfig {
     pub password_ref: String,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum LdapFlavor {
+    #[default]
+    Ad,
+    Openldap,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdConfig {
     pub enabled: bool,
     pub domain: String,
-    /// LDAP/LDAPS URIs, e.g. `ldaps://dc1.corp.local:636`.
+    /// LDAP/LDAPS URIs, e.g. `ldaps://dc1.corp.local:636` or `ldap://127.0.0.1:389` (dev).
     pub ldap_uris: Vec<String>,
     pub base_dn: String,
     pub bind_dn: String,
@@ -66,9 +75,21 @@ pub struct AdConfig {
     /// LDAP page size for paged searches.
     #[serde(default = "default_ldap_page_size")]
     pub page_size: u32,
-    /// Incremental sync via uSNChanged (§12.3).
+    /// Incremental sync via uSNChanged (AD) or modifyTimestamp (OpenLDAP).
     #[serde(default = "default_use_usn_changed")]
     pub use_usn_changed: bool,
+    /// `ad` for Active Directory; `openldap` for local/docker test LDAP.
+    #[serde(default)]
+    pub ldap_flavor: LdapFlavor,
+    /// Allow plain `ldap://` without TLS (local dev / docker OpenLDAP only).
+    #[serde(default)]
+    pub allow_insecure_ldap: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreConfig {
+    #[serde(default = "default_sqlite_path")]
+    pub sqlite_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -153,6 +174,10 @@ impl CollectorConfig {
         c.server.api_key_ref = "***".into();
         c
     }
+}
+
+fn default_sqlite_path() -> String {
+    "data/collector.db".into()
 }
 
 fn default_bind() -> SocketAddr {

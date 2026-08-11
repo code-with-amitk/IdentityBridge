@@ -7,22 +7,19 @@ use std::sync::Arc;
 
 use tokio::net::TcpListener;
 
-use crate::config::CollectorConfig;
 use crate::logging::component;
+use crate::runtime::CollectorRuntime;
 
 pub use middleware::MiddlewareChainDoc;
 pub use routes::AppState;
 
 /// Run the local HTTP server until shutdown.
-///
-/// Serves HTML pages and `/api/v1/*` on `http.web_bind` (default `127.0.0.1:8080`).
-/// A separate HTTPS listener for remote/mobile admin is **Phase 2** — see `docs/collector/HTTP.md`.
-pub async fn run_http_server(config: Arc<CollectorConfig>) -> anyhow::Result<()> {
+pub async fn run_http_server(runtime: Arc<CollectorRuntime>) -> anyhow::Result<()> {
     let state = Arc::new(AppState {
-        config: config.clone(),
+        runtime: runtime.clone(),
     });
     let router = routes::router(state);
-    let addr = config.http.bind;
+    let addr = runtime.config.http.bind;
 
     tracing::info!(
         target: component::HTTP,

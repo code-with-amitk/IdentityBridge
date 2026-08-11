@@ -1,0 +1,42 @@
+# Local OpenLDAP (docker) — see Documentation/Collector/LDAP_Test.md
+
+tenant_id: "00000000-0000-0000-0000-000000000001"
+collector_id: "collector-dev-01"
+
+http:
+  bind: "127.0.0.1:8080"
+  static_dir: "web/static"
+
+auth:
+  jwt_secret: "dev-only"
+  require_local_login: false
+  login_rate_limit_per_minute: 100
+  ad_bind_login: null
+
+store:
+  sqlite_path: "data/collector-dev.db"
+
+ad:
+  enabled: true
+  ldap_flavor: openldap
+  domain: "example.local"
+  ldap_uris:
+    - "ldap://127.0.0.1:1389"
+  base_dn: "dc=example,dc=local"
+  bind_dn: "cn=admin,dc=example,dc=local"
+  bind_password_ref: "LDAP_BIND_PASSWORD"
+  sync_interval_secs: 300
+  page_size: 100
+  use_usn_changed: false
+  allow_insecure_ldap: true
+
+server:
+  ingest_base_url: "https://server.example.com"
+  api_key_ref: "COLLECTOR_SERVER_API_KEY"
+  mtls_cert_path: null
+  mtls_key_path: null
+  heartbeat_interval_secs: 60
+
+logging:
+  level: "debug"
+  format: "text"

@@ -1,25 +1,40 @@
 use std::sync::Arc;
 
-use axum::extract::State;
+use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Json};
 use axum::routing::{get, post};
 use axum::Router;
+use serde::Deserialize;
 use tower_http::services::ServeDir;
 
-use crate::config::CollectorConfig;
+use crate::ad::LdapClient;
 use crate::http::middleware::{auth_middleware, layers, rate_limit_login};
+use crate::runtime::CollectorRuntime;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub config: Arc<CollectorConfig>,
+    pub runtime: Arc<CollectorRuntime>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CatalogUsersQuery {
+    pub q: Option<String>,
+    #[serde(default = "default_limit")]
+    pub limit: u32,
+    #[serde(default)]
+    pub offset: u32,
+}
+
+fn default_limit() -> u32 {
+    50
 }
 
 /// Single router: HTML pages, static assets, and `/api/v1/*` on localhost.
 pub fn router(state: Arc<AppState>) -> Router {
     let (trace, compression, concurrency) = layers();
-    let static_dir = state.config.http.static_dir.clone();
-    let config = state.config.clone();
+    let static_dir = state.runtime.config.http.static_dir.clone();
+    let config = state.runtime.config.clone();
 
     Router::new()
         .route("/healthz", get(healthz))
@@ -27,6 +42,9 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/login", get(login_page))
         .route("/api/v1/status", get(api_status))
         .route("/api/v1/config", get(api_config))
+        .route("/api/v1/test/ad", post(api_test_ad))
+        .route("/api/v1/sync/ad", post(api_sync_ad))
+        .route("/api/v1/catalog/users", get(api_catalog_users))
         .route("/api/v1/auth/login", post(api_login_stub))
         .route("/api/v1/auth/logout", post(api_logout_stub))
         .nest_service("/static", ServeDir::new(static_dir))
@@ -69,17 +87,82 @@ async fn login_page() -> impl IntoResponse {
 }
 
 async fn api_status(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let cfg = &state.runtime.config;
     Json(serde_json::json!({
-        "collector_id": state.config.collector_id,
-        "tenant_id": state.config.tenant_id,
-        "ad_enabled": state.config.ad.enabled,
-        "server_url": state.config.server.ingest_base_url,
-        "status": "starting",
+        "collector_id": cfg.collector_id,
+        "tenant_id": cfg.tenant_id,
+        "ad_enabled": cfg.ad.enabled,
+        "ad_domain": cfg.ad.domain,
+        "ldap_flavor": cfg.ad.ldap_flavor,
+        "server_url": cfg.server.ingest_base_url,
+        "status": "running",
     }))
 }
 
 async fn api_config(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    Json(state.config.redacted())
+    Json(state.runtime.config.redacted())
+}
+
+async fn api_test_ad(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    if !state.runtime.config.ad.enabled {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "ok": false, "message": "ad.enabled is false" })),
+        );
+    }
+
+    let client = LdapClient::new(&state.runtime.config);
+    match client.test_connection().await {
+        Ok(result) => {
+            let status = if result.ok {
+                StatusCode::OK
+            } else {
+                StatusCode::BAD_GATEWAY
+            };
+            (status, Json(serde_json::to_value(result).unwrap()))
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "ok": false, "message": e.to_string() })),
+        ),
+    }
+}
+
+async fn api_sync_ad(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match state.runtime.ldap_sync.run_once().await {
+        Ok(report) => {
+            let status = if report.ok {
+                StatusCode::OK
+            } else {
+                StatusCode::BAD_REQUEST
+            };
+            (status, Json(serde_json::to_value(report).unwrap()))
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "ok": false, "message": e.to_string() })),
+        ),
+    }
+}
+
+async fn api_catalog_users(
+    State(state): State<Arc<AppState>>,
+    Query(query): Query<CatalogUsersQuery>,
+) -> impl IntoResponse {
+    let domain = &state.runtime.config.ad.domain;
+    match state.runtime.store.list_catalog_users(
+        domain,
+        query.q.as_deref(),
+        query.limit.min(500),
+        query.offset,
+    ) {
+        Ok(users) => Json(serde_json::json!({ "users": users, "count": users.len() })).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e.to_string() })),
+        )
+            .into_response(),
+    }
 }
 
 async fn api_login_stub() -> impl IntoResponse {

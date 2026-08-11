@@ -89,8 +89,10 @@ fn run_service(arguments: &[OsString]) -> anyhow::Result<()> {
 
     let rt = tokio::runtime::Runtime::new()?;
     rt.block_on(async {
+        let runtime = Arc::new(crate::runtime::CollectorRuntime::new(config)?);
+        runtime.spawn_background_tasks();
         tokio::select! {
-            r = crate::http::run_http_server(config) => r,
+            r = crate::http::run_http_server(runtime) => r,
             _ = wait_for_shutdown(shutdown_rx) => Ok(()),
         }
     })?;

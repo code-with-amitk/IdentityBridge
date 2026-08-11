@@ -58,6 +58,8 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let config = Arc::new(CollectorConfig::from_file(&cli.config)?);
+
+    // Parse log level(ex: info) and format(eg: text) from the config file
     init_tracing(&config.logging)?;
 
     info!(
@@ -74,5 +76,6 @@ async fn main() -> anyhow::Result<()> {
         "HTTP middleware chain"
     );
 
+    // Call run function from crates/collector/src/lib.rs
     collector::run(config).await
 }

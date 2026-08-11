@@ -24,13 +24,19 @@ pub fn run(config: Arc<CollectorConfig>) -> anyhow::Result<()> {
 
 #[cfg(not(windows))]
 fn run_console(config: Arc<CollectorConfig>) -> anyhow::Result<()> {
+    use crate::runtime::CollectorRuntime;
+
     tracing::info!(
         target: component::SERVICE,
         "running in console mode (non-Windows — Windows Service wrapper skipped)"
     );
 
     let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(crate::http::run_http_server(config))
+    rt.block_on(async {
+        let runtime = Arc::new(CollectorRuntime::new(config)?);
+        runtime.spawn_background_tasks();
+        crate::http::run_http_server(runtime).await
+    })
 }
 
 #[cfg(windows)]

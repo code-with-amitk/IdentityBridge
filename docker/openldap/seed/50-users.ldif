@@ -1,0 +1,42 @@
+dn: ou=users,dc=example,dc=local
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=example,dc=local
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=alice,ou=users,dc=example,dc=local
+objectClass: inetOrgPerson
+cn: Alice Example
+sn: Example
+uid: alice
+mail: alice@example.local
+userPassword: alice123
+
+dn: uid=bob,ou=users,dc=example,dc=local
+objectClass: inetOrgPerson
+cn: Bob Example
+sn: Example
+uid: bob
+mail: bob@example.local
+userPassword: bob123
+
+dn: uid=carol,ou=users,dc=example,dc=local
+objectClass: inetOrgPerson
+cn: Carol Example
+sn: Example
+uid: carol
+mail: carol@example.local
+userPassword: carol123
+
+dn: cn=engineering,ou=groups,dc=example,dc=local
+objectClass: groupOfNames
+cn: engineering
+member: uid=alice,ou=users,dc=example,dc=local
+member: uid=bob,ou=users,dc=example,dc=local
+
+dn: cn=vpn-users,ou=groups,dc=example,dc=local
+objectClass: groupOfNames
+cn: vpn-users
+member: uid=alice,ou=users,dc=example,dc=local

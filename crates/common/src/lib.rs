@@ -3,5 +3,5 @@
 mod events;
 mod session;
 
-pub use events::{CatalogEvent, SessionEvent, SessionState};
+pub use events::{CatalogEvent, CatalogObjectType, SessionEvent, SessionEventType, SessionState};
 pub use session::SessionRecord;
