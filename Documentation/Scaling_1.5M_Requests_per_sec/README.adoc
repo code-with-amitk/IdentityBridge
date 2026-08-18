@@ -6,8 +6,8 @@
 ```mermaid
 flowchart LR
     DNS["DNS<br>Route 53"]
-    C1["Collecto1r<br/>Batched JSON"]
-    C2["Collector2<br/>Batched JSON"]
+    C1["Collecto1"]
+    C2["Collector2"]
     GLB["Global LB<br>Regional LB"]
     
     subgraph Datacenter
@@ -32,8 +32,8 @@ flowchart LR
     C1 -->|hostname|DNS
     DNS -->|IP|C1
 
-    C1 -->GLB
-    C2 -->GLB
+    C1 -->|Batched JSON| GLB
+    C2 -->|Batched JSON| GLB
     GLB --> APIGW
     APIGW --> LB
     LB --> KLB
