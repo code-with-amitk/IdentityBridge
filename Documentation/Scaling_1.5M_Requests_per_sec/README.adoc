@@ -8,8 +8,7 @@ flowchart LR
     DNS["DNS<br>Route 53"]
     C1["Collecto1r<br/>Batched JSON"]
     C2["Collector2<br/>Batched JSON"]
-    GLB["Global<br>LB"]
-    RLB["Regional<br>LB"]
+    GLB["Global LB<br>Regional LB"]
     
     subgraph Datacenter
         APIGW["API GW<br/>TLS termination"]
@@ -35,8 +34,7 @@ flowchart LR
 
     C1 -->GLB
     C2 -->GLB
-    GLB --> RLB
-    RLB --> APIGW
+    GLB --> APIGW
     APIGW --> LB
     LB --> KLB
     KLB --> P1
