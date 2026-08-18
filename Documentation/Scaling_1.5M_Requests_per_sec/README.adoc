@@ -52,6 +52,6 @@ flowchart LR
     W2 --> DB
 ```
 
-=== Ingestion Tier
+=== link:Ingestion_Tier.adoc[Ingestion Tier]
 
 === Collector Tier
