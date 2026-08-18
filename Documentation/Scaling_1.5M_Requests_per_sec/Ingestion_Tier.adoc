@@ -1,0 +1,38 @@
+:toc:
+:toclevels: 3
+
+= Ingestion Tier
+
+== Sequence Diagram
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant C as Collector
+    participant LB as AWS ALB<br/>TLS Termination
+    box JIMS Pod(Ingestion Tier)
+    participant H as HTTP Server<br>Tokio Runtime
+    participant KP as Kafka Producer
+    end
+    participant K as Kafka Broker<br/>identity-events Topic
+
+    C->>LB: POST /ingest/v1/identities<br/>HTTPS + Bearer Token<br/><br/>JSON Batch:<br/>{<br/>  "collector_id": "collector-123",<br/>  "timestamp": "2026-08-18T14:30:00Z",<br/>  "records": [<br/>    {<br/>      "ip": "10.1.2.50",<br/>      "username": "alice",<br/>      "domain": "CORP",<br/>      "device": "DESKTOP-ABC",<br/>      "groups": ["Engineering","VPN-Users"],<br/>      "state": "active",<br/>      "last_seen": "2026-08-18T14:29:55Z"<br/>    },<br/>    {<br/>      "ip": "10.1.2.51",<br/>      "username": "bob",<br/>      "domain": "CORP",<br/>      "device": "DESKTOP-XYZ",<br/>      "groups": ["Engineering"],<br/>      "state": "active",<br/>      "last_seen": "2026-08-18T14:29:56Z"<br/>    }<br/>  ]<br/>}
+    Note over LB: TLS Termination
+
+    LB->>H: Batched Json
+    Note over H: POST /ingest/v1/identities
+    Note over H: Authenticate Collector<br/>Validate token<br>Validate request(Size, schema, required fields)<br>Deserialize JSON batch(into Rust structures)
+
+    H->>KP: Produce batch asynchronously
+
+    KP->>K: Publish message<br/>identity-events partition
+
+    K-->>KP: ACK / message persisted
+
+    KP-->>H: Produce successful
+
+    H-->>LB: Response
+
+    LB-->>C: 202 Accepted
+```
+
