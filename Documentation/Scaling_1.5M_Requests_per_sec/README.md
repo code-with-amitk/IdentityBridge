@@ -1,8 +1,11 @@
-:toc:
-:toclevels: 3
+* Architecture
+  * [Ingestion Tier](Ingestion_Tier.adoc)
+  * [Consumer Tier]
 
-== Architecture
+# Architecture
 - Ingestion Tier(3..200 pods), Consumer Tier(3..50 pods) scaled indepedently
+- Service to scale horizontally. The Rust API is stateless and Tokio-based
+
 ```mermaid
 flowchart LR
     DNS["DNS<br>Route 53"]
@@ -20,10 +23,11 @@ flowchart LR
                 P2["Pod 2<br/>Tokio Runtime<br> Kafka Producer"]
                 PN["Pod 200<br/>Tokio Runtime<br> Kafka Producer"]
             end
-            K[["Kafka<br>Broker<br><br> Partition0<br>Partition1<br>Partition2"]]
+            K[["Kafka<br>Broker<br><br> Partitions<br>P0 P1 P2...P99"]]
             subgraph Workers["Consumer Tier"]
-                W1["Worker Pod 1<br><br>Partition0"]
-                W2["Worker Pod 20<br><br>Partition1,2"]
+                W1["Worker Pod 1<br><br>→ P0-P9"]
+                W2["Worker Pod 2<br><br>→ P10-P19"]
+                W3["Worker Pod 3<br><br>→ P20-P29"]
             end
             DB["PostgreSQL"]
         end
@@ -47,11 +51,9 @@ flowchart LR
 
     K -->|consumer group| W1
     K --> W2
+    K --> W3
 
     W1 --> DB
     W2 --> DB
+    W3 --> DB
 ```
-
-=== link:Ingestion_Tier.adoc[Ingestion Tier]
-
-=== Collector Tier
