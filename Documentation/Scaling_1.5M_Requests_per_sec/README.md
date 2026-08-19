@@ -1,6 +1,10 @@
 * Architecture
   * [Ingestion Tier](Ingestion_Tier.adoc)
-  * [Consumer Tier]
+  * [Kafka Tier](./Kafka_Tier.md)
+  * [Consumer Tier](./Consumer_Tier.md)
+  * [DB Tier](./SQL_Tier.md)
+  * [Redis Tier](./Redis_Tier.md)
+  * [Metrics](./Metrics.md)
 
 # Architecture
 - Ingestion Tier(3..200 pods), Consumer Tier(3..50 pods) scaled independently
@@ -19,22 +23,27 @@ flowchart LR
     GLB["Global LB<br>Regional LB"]
     
     subgraph Datacenter
-        APIGW["API GW<br/>TLS termination"]
+        APIGW["API GW<br/>nginx<br>TLS termination"]
         LB["ELB/ALB"]
         subgraph JIMS Server
-            subgraph API["Ingestion Tier"]
+            subgraph API["Ingestion Tier(100-200 pods)"]
                 KLB["k8s<br>Ingress LB"]
                 P1["Pod 1<br/>Tokio Runtime<br> Kafka Producer"]
                 P2["Pod 2<br/>Tokio Runtime<br> Kafka Producer"]
                 PN["Pod 200<br/>Tokio Runtime<br> Kafka Producer"]
             end
-            K[["Kafka<br>Broker<br><br> Partitions<br>P0 P1 P2...P99"]]
-            subgraph Workers["Consumer Tier"]
+            K[["Kafka<br>Tier<br><br> Partitions<br>P0 P1 P2...P99"]]
+            subgraph Workers["Consumer Tier (50-100 pods)"]
                 W1["Worker Pod 1<br><br>→ P0-P9"]
                 W2["Worker Pod 2<br><br>→ P10-P19"]
                 W3["Worker Pod 3<br><br>→ P20-P29"]
             end
-            DB["PostgreSQL"]
+            redis[["Redis<br>Immediate IP Query"]]
+            subgraph DBT["DB Tier"]
+                DB[["SQL<br>(AWS Aurora)"]]
+                RR[["Read Replicas"]]
+            end
+            srx["SRX"]
         end
     end
 
@@ -43,22 +52,20 @@ flowchart LR
 
     C1 -->|Batched JSON| GLB
     C2 -->|Batched JSON| GLB
-    GLB --> APIGW
-    APIGW --> LB
+    GLB -->|HTTPS| APIGW
+    APIGW -->|HTTP| LB
     LB --> KLB
     KLB --> P1
     KLB --> P2
     KLB --> PN
 
-    P1 -->|Topic:<br>identity-events| K
-    P2 --> K
-    PN --> K
+    API -->|Topic:identity-events| K
+    K -->|consumer group| Workers
 
-    K -->|consumer group| W1
-    K --> W2
-    K --> W3
+    Workers --> DBT
+    Workers --> redis
+    DB <--> RR
 
-    W1 --> DB
-    W2 --> DB
-    W3 --> DB
+    RR --> srx
+    redis --> srx
 ```

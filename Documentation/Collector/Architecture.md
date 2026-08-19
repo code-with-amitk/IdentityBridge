@@ -61,8 +61,6 @@ SessionRecord {
 }
 ```
 
----
-
 ## Scale design
 
 ### Event logs
