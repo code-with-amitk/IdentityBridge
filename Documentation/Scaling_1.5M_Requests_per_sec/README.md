@@ -3,8 +3,13 @@
   * [Consumer Tier]
 
 # Architecture
-- Ingestion Tier(3..200 pods), Consumer Tier(3..50 pods) scaled indepedently
+- Ingestion Tier(3..200 pods), Consumer Tier(3..50 pods) scaled independently
 - Service to scale horizontally. The Rust API is stateless and Tokio-based
+```
+Ingestion Layer       Kafka              Consumer Layer
+---------------     ---------            -------------
+100 instances   →   100 partitions   →   50 workers   →   DB
+```
 
 ```mermaid
 flowchart LR
