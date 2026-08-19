@@ -15,6 +15,7 @@ Compared to JIMS (C++ collector + MFC admin UI on Windows), Identity Bridge is b
 ## Documentation
 
 - [Juniper JIMS overview](Documentation/JuniperJIMS.md)
+- [Scaling_1.5M_Requests_per_sec](Documentation/Scaling_1.5M_Requests_per_sec/README.md)
 - **Earlier approach:** 
     - [Java-based collector (reference)](Documentation/Moving_JIMS_Collector_From_Java_to_Rust.md)
 - Collector
