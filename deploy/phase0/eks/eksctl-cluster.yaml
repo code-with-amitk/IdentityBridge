@@ -1,0 +1,84 @@
+# Identity Bridge — EKS cluster + dedicated ingest node pool (Phase 0)
+# Create:  eksctl create cluster -f deploy/phase0/eks/eksctl-cluster.yaml
+# Verify:   kubectl get nodes -l workload=ingest
+#
+# Customize: AWS_REGION, cluster name, instance types, and capacity for your account.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: identity-bridge
+  region: ap-south-1
+  version: "1.31"
+
+# Configures a dedicated Virtual Private Cloud with Highly Available (HA) gateway
+vpc:
+  cidr: 10.40.0.0/16
+  nat:
+    gateway: HighlyAvailable
+  clusterEndpoints:
+    publicAccess: true
+    privateAccess: true
+
+# Cluster split into 2 specialized node pools to isolate workloads and optimize resource utilization
+managedNodeGroups:
+  # System / shared workloads (Cluster Autoscaler, ALB controller, etc.)
+  - name: system
+    instanceTypes:
+      - m7g.large
+    minSize: 2
+    maxSize: 5
+    desiredCapacity: 2
+    volumeSize: 80
+    privateNetworking: true
+    labels:
+      workload: system
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/identity-bridge: "owned"
+
+  # Ingestion tier node pool — server-ingest pods (125–300 via HPA)
+  # The Core Workload Pool
+  - name: ingest
+    instanceTypes:
+      - m7g.xlarge
+      - c7g.xlarge
+    minSize: 3
+    maxSize: 80     # Can scale to 80 pods
+    desiredCapacity: 10
+    volumeSize: 100
+    privateNetworking: true
+    availabilityZones:
+      - ap-south-1a
+      - ap-south-1b
+      - ap-south-1c
+    labels:
+      workload: ingest
+    taints:
+      - key: workload
+        value: ingest
+        effect: NoSchedule
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/identity-bridge: "owned"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        cloudWatch: true
+
+iam:
+  withOIDC: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      - api
+      - audit
+      - authenticator
+
+addons:
+  - name: vpc-cni
+  - name: coredns
+  - name: kube-proxy
+  - name: eks-pod-identity-agent

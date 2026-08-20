@@ -1,5 +1,5 @@
 * Architecture
-  * [Ingestion Tier](Ingestion_Tier.md)
+  * [Ingestion Tier](./Ingestion_Tier/README.md)
   * [Kafka Tier](./Kafka_Tier.md)
   * [Consumer Tier](./Consumer_Tier.md)
   * [DB Tier](./SQL_Tier.md)
