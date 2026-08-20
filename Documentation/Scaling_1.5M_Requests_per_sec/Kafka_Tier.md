@@ -1,11 +1,13 @@
-**Partitioning**
-
-- [How it Help](#how-partitioning-help)
-- [Partition keys (per topic)](#partition-keys-per-topic)
-  - [Session events (`identity-events`)](#session-events-identity-events)
-  - [Catalog deltas (`identity-catalog`)](#catalog-deltas-identity-catalog)
-  - [Heartbeat (`identity-heartbeat`)](#heartbeat-identity-heartbeat)
-  - [Partition count vs consumer pods](#partition-count-vs-consumer-pods)
+- [Kafka Tier](#kafka-tier)
+- [Topics](#topics)
+- [cluster (starting point)](#cluster-starting-point)
+- [Partitioning](#partitioning)
+  - [How it Help](#how-it-help)
+  - [Partition keys (per topic)](#partition-keys-per-topic)
+    - [Session events (`identity-events`)](#session-events-identity-events)
+    - [Catalog deltas (`identity-catalog`)](#catalog-deltas-identity-catalog)
+    - [Heartbeat (`identity-heartbeat`)](#heartbeat-identity-heartbeat)
+    - [Partition count vs consumer pods](#partition-count-vs-consumer-pods)
 - [Message Envelope](#message-envelope)
 
 

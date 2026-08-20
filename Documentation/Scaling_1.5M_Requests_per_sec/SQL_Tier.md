@@ -1,6 +1,13 @@
-Aurora
-- [Tables](#tables)
-  - [Session table design (write-optimized)](#session-table-design-write-optimized)
+
+- [Will PostgreSQL become a bottleneck?](#will-postgresql-become-a-bottleneck)
+- [Aurora(SQL)](#aurorasql)
+  - [Tables](#tables)
+    - [Session table design (write-optimized)](#session-table-design-write-optimized)
+
+
+# Will PostgreSQL become a bottleneck?
+- Yes — if every ingest request maps to a synchronous row write on the primary.
+- No — if the architecture treats PostgreSQL as a bulk, eventually-consistent store behind Kafka and Redis.
 
 # Aurora(SQL)
 - At **1.5M HTTP requests/sec** with **100 records/request**:
