@@ -1,14 +1,13 @@
 
+Contents
+- [Kubernetes, Ingestion Tier Install on Docker Desktop](#kubernetes-ingestion-tier-install-on-docker-desktop)
+  - [Phase 0 — Kubernets, nginx, kafka](#phase-0--kubernets-nginx-kafka)
+  - [Phase 1 - Ingestion Tier](#phase-1---ingestion-tier)
+- [Verify deployment](#verify-deployment)
+- [Architecture (one cluster)](#architecture-one-cluster)
 
-# Identity Bridge — Deployment
 
-**Phase 0 Setup bringup** Kubernetes + Kafka + Ingress (nginx local / ALB AWS)
-
-**Phase 1 Ingestion tier bringup** ConfigMap, Deployment, Service, HPA, Ingress rules
-
----
-
-## Quick start — local (Docker Desktop)
+## Kubernetes, Ingestion Tier Install on Docker Desktop
 
 ```bash
 cd ~/IdentityBridge
@@ -19,9 +18,11 @@ curl http://ingest.local/health/ready
 
 Detail: [deploy/local/README-docker-desktop.md](../../deploy/local/README-docker-desktop.md)
 
-## Phase 0 — Platform commands
+**Phase 0 Setup bringup** Kubernetes + Kafka + Ingress (nginx local / ALB AWS)
 
-### Docker Desktop
+**Phase 1 Ingestion tier bringup** ConfigMap, Deployment, Service, HPA, Ingress rules
+
+### Phase 0 — Kubernets, nginx, kafka
 ```
 kubectl config use-context docker-desktop // Point kubectl at Docker Desktop's built-in cluster
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/cloud/deploy.yaml`        // Install **nginx Ingress Controller** — acts as HTTP load balancer on localhost:80
@@ -32,7 +33,7 @@ kubectl wait -n identity-bridge --for=condition=ready pod -l app=kafka --timeout
 ./deploy/local/create-topics-local.sh   // Create topics: `identity-events` (24p), `identity-catalog` (8p), `identity-heartbeat` (4p)
 ```
 
-### Docker Desktop (manual, after Phase 0)
+### Phase 1 - Ingestion Tier
 
 | Command | What it does |
 |---|---|
@@ -51,7 +52,7 @@ kubectl wait -n identity-bridge --for=condition=ready pod -l app=kafka --timeout
 | `kubectl -n identity-bridge rollout status deployment/server-ingest` | Wait until all ingest pods pass readiness |
 
 
-### Verify deployment
+## Verify deployment
 
 ```bash
 kubectl get nodes
@@ -61,7 +62,6 @@ curl http://ingest.local/health/ready          # local
 kubectl describe ingress server-ingest -n identity-bridge   # AWS ALB address
 ```
 
----
 
 ## Architecture (one cluster)
 
