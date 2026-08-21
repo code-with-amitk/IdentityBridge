@@ -1,0 +1,36 @@
+# Egress: MSK (same VPC) + DNS only. Ingest pods must not reach PostgreSQL/Redis.
+# Adjust ipBlock.cidr if MSK uses a different subnet range.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: server-ingest-egress
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: server-ingest
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.40.0.0/16
+      ports:
+        - protocol: TCP
+          port: 9096
+        - protocol: TCP
+          port: 9094
+        - protocol: TCP
+          port: 9092
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

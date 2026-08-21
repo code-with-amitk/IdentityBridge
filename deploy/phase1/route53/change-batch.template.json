@@ -1,0 +1,29 @@
+{
+  "Comment": "Alias ingest hostname to ALB (fill ALB_DNS_NAME from kubectl get ingress)",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "ingest.identity-bridge.example.com",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "ZP97RAFLXTNZK",
+          "DNSName": "k8s-identit-serveri-xxxxxxxxxx-yyyyyyyyyy.ap-south-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true
+        }
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "ingest.identity-bridge.example.com",
+        "Type": "AAAA",
+        "AliasTarget": {
+          "HostedZoneId": "ZP97RAFLXTNZK",
+          "DNSName": "k8s-identit-serveri-xxxxxxxxxx-yyyyyyyyyy.ap-south-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true
+        }
+      }
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 # Identity Bridge — EKS cluster + dedicated ingest node pool (Phase 0)
+# Target: 50,000 ingest requests/sec (~8 server-ingest pods, HPA max 25)
 # Create:  eksctl create cluster -f deploy/phase0/eks/eksctl-cluster.yaml
 # Verify:   kubectl get nodes -l workload=ingest
 #
@@ -38,15 +39,14 @@ managedNodeGroups:
       k8s.io/cluster-autoscaler/enabled: "true"
       k8s.io/cluster-autoscaler/identity-bridge: "owned"
 
-  # Ingestion tier node pool — server-ingest pods (125–300 via HPA)
-  # The Core Workload Pool
+  # Ingestion tier node pool — server-ingest pods (8 steady, HPA 4–25 @ 50K req/s)
   - name: ingest
     instanceTypes:
       - m7g.xlarge
       - c7g.xlarge
-    minSize: 3
-    maxSize: 80     # Can scale to 80 pods
-    desiredCapacity: 10
+    minSize: 2
+    maxSize: 12
+    desiredCapacity: 3
     volumeSize: 100
     privateNetworking: true
     availabilityZones:

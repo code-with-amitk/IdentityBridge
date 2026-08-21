@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-ingest-stub-nginx
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      location /health/live {
+        access_log off;
+        return 200 "live\n";
+        add_header Content-Type text/plain;
+      }
+      location /health/ready {
+        access_log off;
+        return 200 "ready\n";
+        add_header Content-Type text/plain;
+      }
+      location / {
+        return 200 "server-ingest stub (50K req/s deploy)\n";
+        add_header Content-Type text/plain;
+      }
+    }

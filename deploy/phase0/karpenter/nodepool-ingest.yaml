@@ -40,8 +40,8 @@ spec:
         kind: EC2NodeClass
         name: ingest
   limits:
-    cpu: "2000"
-    memory: 4000Gi
+    cpu: "48"
+    memory: 96Gi
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m

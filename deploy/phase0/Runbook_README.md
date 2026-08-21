@@ -1,9 +1,9 @@
 # Phase 0 — Shared platform prerequisites
 
-```bash
-export AWS_REGION=ap-south-1
-export AWS_PROFILE=your-profile   # optional
-```
+> **Local WSL testing (no AWS):** skip this phase — use [deploy/local/README.md](../local/README.md) instead.  
+> **AWS staging/production (50K req/s):** follow sections below (EKS + MSK).
+
+Artifacts for [Scaling_1.5M_Design.md](../../Scaling_1.5M_Design.md) § Phase 0.
 
 ---
 
@@ -22,7 +22,7 @@ kubectl get nodes
 kubectl get nodes -l workload=ingest
 ```
 
-**Expected:** ≥ 3 ingest nodes (one per AZ), taint `workload=ingest:NoSchedule`.
+**Expected:** ≥ 2 ingest nodes, taint `workload=ingest:NoSchedule` (50K req/s sizing; HPA max 25 pods).
 
 Alternative node provisioning: [karpenter/nodepool-ingest.yaml](karpenter/nodepool-ingest.yaml) if Karpenter is already installed.
 
@@ -52,7 +52,7 @@ helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
   --set extraArgs.skip-nodes-with-system-pods=false
 ```
 
-Autoscaler scales the **ingest** node group toward HPA max (300 ingest pods). Size `maxSize: 80` on ingest node group in eksctl config — tune from pod density ( ~3–4 ingest pods per m7g.xlarge).
+Autoscaler scales the **ingest** node group toward HPA max (**25** ingest pods @ 50K req/s). Node group `maxSize: 12` — ~2–3 pods per `m7g.xlarge`.
 
 ---
 
@@ -66,7 +66,7 @@ Minimum for ingest phase:
 |---|---|
 | Cluster name | `identity-bridge-msk` |
 | Kafka version | 3.6+ |
-| Brokers | 3× `kafka.m7g.large` (dev/staging) — scale per [Kafka_Tier.md](../../Documentation/Scaling_1.5M_Requests_per_sec/Kafka_Tier.md) for prod |
+| Brokers | 3× `kafka.m7g.large` (50K req/s baseline) |
 | Authentication | SASL/SCRAM enabled |
 | Encryption in transit | TLS |
 | VPC | Same VPC as EKS |
@@ -99,11 +99,11 @@ chmod +x deploy/phase0/msk/create-topics.sh
 
 Topics created:
 
-| Topic | Partitions |
+| Topic | Partitions (50K req/s) |
 |---|---|
-| `identity-events` | 128 |
-| `identity-catalog` | 32 |
-| `identity-heartbeat` | 8 |
+| `identity-events` | 24 |
+| `identity-catalog` | 8 |
+| `identity-heartbeat` | 4 |
 
 ---
 

@@ -9,13 +9,21 @@
 * [Architecture when ingest reaches 1.5M requests/sec](#architecture-when-ingest-reaches-15m-requestssec)
 
 # Architecture
-- Ingestion Tier(3..200 pods), Consumer Tier(3..50 pods) scaled independently
-- Service to scale horizontally. The Rust API is stateless and Tokio-based
-```
-Ingestion Layer       Kafka              Consumer Layer
----------------     ---------            -------------
-100 instances   →   100 partitions   →   50 workers   →   DB
-```
+### Ingest Pods
+|Traffic(req/sec)|Pods|
+|---|---|
+|12k|1|
+|50k|50k/12k = 5|
+|100k| 10|
+|1.5M| 1.5M/12k = 125|
+
+### Consumer Pods
+|Traffic(req/sec)|identity-events partitions|Session consumer pods|Catalog consumers|
+|---|---|---|---|
+|50k|16–32 |4–8|2–4|
+|100k|32–64|8–16|4–8|
+|1.5M|128|64|16|
+
 
 ```mermaid
 flowchart LR
@@ -29,14 +37,14 @@ autonumber
         APIGW["API GW<br/>nginx<br>TLS termination"]
         LB["ELB/ALB"]
         subgraph JIMS Server
-            subgraph API["Ingestion Tier(100-200 pods)"]
+            subgraph API["Ingestion Tier(3-10 pods)"]
                 KLB["k8s<br>Ingress LB"]
                 P1["Pod 1<br/>Tokio Runtime<br> Kafka Producer"]
                 P2["Pod 2<br/>Tokio Runtime<br> Kafka Producer"]
                 PN["Pod 200<br/>Tokio Runtime<br> Kafka Producer"]
             end
             K[["Kafka<br>Tier<br><br> Partitions<br>P0 P1 P2...P99"]]
-            subgraph Workers["Consumer Tier (50-100 pods)"]
+            subgraph Workers["Consumer Tier (3-10 pods)"]
                 W1["Worker Pod 1<br><br>→ P0-P9"]
                 W2["Pod 2<br><br>→ P10-P19"]
                 W3["Pod 3<br><br>→ P20-P29"]

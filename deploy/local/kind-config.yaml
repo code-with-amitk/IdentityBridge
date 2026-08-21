@@ -1,0 +1,23 @@
+# kind cluster for Identity Bridge local testing (WSL)
+# Maps localhost:80/443 → ingress-nginx; localhost:9092 → Kafka (optional host access)
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: identity-bridge
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "workload=ingest,ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+      - containerPort: 9092
+        hostPort: 9092
+        protocol: TCP

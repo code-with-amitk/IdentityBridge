@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-ingest
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+spec:
+  type: ClusterIP
+  selector:
+    app: server-ingest
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP

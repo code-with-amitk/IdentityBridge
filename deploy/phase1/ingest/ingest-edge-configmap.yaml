@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingest-edge-config
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+data:
+  # Replace with your public ingest hostname (must match Ingress rule + ACM cert)
+  ingest_host: "ingest.identity-bridge.example.com"
+  ingest_scheme: "https"
+  # Collector → Server URLs (use in collector.yaml server.ingest_base_url)
+  url_events: "https://ingest.identity-bridge.example.com/ingest/v1/events"
+  url_catalog: "https://ingest.identity-bridge.example.com/ingest/v1/catalog"
+  url_heartbeat: "https://ingest.identity-bridge.example.com/ingest/v1/heartbeat"
+  # ALB idle timeout seconds (match ingress annotation)
+  alb_idle_timeout_seconds: "3600"

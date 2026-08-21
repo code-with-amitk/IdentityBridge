@@ -1,0 +1,45 @@
+# AWS Load Balancer Controller — Ingress for server-ingest (50K req/s)
+# Replace CERTIFICATE_ARN and host before apply.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: server-ingest
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+  annotations:
+    # Internet-facing ALB for Collectors (use "internal" if all Collectors connect via VPN/DX)
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/ip-address-type: ipv4
+    # ACM certificate — must cover ingest_host (same region as cluster)
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:ACCOUNT_ID:certificate/CERTIFICATE_ID
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    # Health check → stub/nginx or Rust /health/ready
+    alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    # Long-lived Collector HTTPS connections (micro-batch push)
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600
+    # Optional WAF — uncomment after creating Web ACL (see deploy/phase1/waf/README.md)
+    # alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-south-1:ACCOUNT_ID:regional/webacl/identity-bridge-ingest/ACL_ID
+spec:
+  ingressClassName: alb
+  rules:
+    - host: ingest.identity-bridge.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: server-ingest
+                port:
+                  number: 8080

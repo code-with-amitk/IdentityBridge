@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap   # configuration files, environment paths, or feature flags
+metadata:
+  name: kafka-config
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+data:
+  # Replace with MSK SASL/SCRAM bootstrap brokers from AWS Console or msk.env
+  brokers: "b-1.identity-bridge-msk.example.kafka.ap-south-1.amazonaws.com:9096,b-2.identity-bridge-msk.example.kafka.ap-south-1.amazonaws.com:9096"
+  topic_events: "identity-events"
+  topic_catalog: "identity-catalog"
+  topic_heartbeat: "identity-heartbeat"
+  # Producer defaults — consumed by server-ingest Rust app (Phase 5)
+  producer_acks: "1"
+  producer_compression: "lz4"
+  producer_linger_ms: "10"
+  producer_enable_idempotence: "true"

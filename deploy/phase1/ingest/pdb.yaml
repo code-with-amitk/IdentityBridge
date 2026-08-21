@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: server-ingest
+  namespace: identity-bridge
+  labels:
+    app: server-ingest
+    tier: ingestion
+spec:
+  minAvailable: 80%
+  selector:
+    matchLabels:
+      app: server-ingest
