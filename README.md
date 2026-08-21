@@ -24,4 +24,4 @@ Compared to JIMS (C++ collector + MFC admin UI on Windows), Identity Bridge is b
   - Server
     - [Architecture](Documentation/Server/Architecture.md)
 - Deployment
-  [Phase0 - Prepare EKS Cluster](./Documentation/Depolyment/Phase0/README.md)
+  - [Phase0 - Prepare EKS Cluster](./Documentation/Depolyment/README.md)
