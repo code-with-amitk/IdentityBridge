@@ -65,7 +65,7 @@ kubectl describe ingress server-ingest -n identity-bridge   # AWS ALB address
 
 ## Architecture (one cluster)
 
-```mermaid
+```
 Your WSL shell / browser
         │
         │  http://ingest.local  (127.0.0.1 in /etc/hosts)
