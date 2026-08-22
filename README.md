@@ -25,3 +25,4 @@ Compared to JIMS (C++ collector + MFC admin UI on Windows), Identity Bridge is b
     - [Architecture](Documentation/Server/Architecture.md)
 - Deployment
   - [Kubernets, nginx, kafka, Ingestion Tier](./Documentation/Depolyment/README.md)
+  - [How Container are Creted](./Documentation/Depolyment/Cointainer_Creation.md)

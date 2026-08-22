@@ -9,21 +9,31 @@
 * [Architecture when ingest reaches 1.5M requests/sec](#architecture-when-ingest-reaches-15m-requestssec)
 
 # Architecture
+## Old
+```
+              |----------------- Server ------------|
+			  |									    |
+Collector-->  |rust  						   rust	----cache---->postgres
+			  |task ---> |unbounded queue| --> task	|	  |			|
+			  |										|	  |			|
+			  |								rust   <------|---------|
+			  |								task    |
+			  |------------------------------/\-----|
+											  |IP/user query
+											  |
+											  SRX firewall
+```
+
+## New
 ### Ingest Pods
-|Traffic(req/sec)|Pods|
-|---|---|
-|12k|1|
-|50k|50k/12k = 5|
-|100k| 10|
-|1.5M| 1.5M/12k = 125|
+```
+1 pod(12000 req/sec), 5 pods(60k), 10 pods(100k), 125 pods(1.5M)
+```
 
 ### Consumer Pods
-|Traffic(req/sec)|identity-events partitions|Session consumer pods|Catalog consumers|
-|---|---|---|---|
-|50k|16–32 |4–8|2–4|
-|100k|32–64|8–16|4–8|
-|1.5M|128|64|16|
-
+```
+30-40 pods(identity partition), 8-16 pods(session consumer), 4-8(catalog consumer)
+```
 
 ```mermaid
 flowchart LR
@@ -96,15 +106,10 @@ autonumber
 
 ---
 
-## Architecture when ingest reaches 1.5M requests/sec
+## Old vs New
 
-| Component | Role at 1.5M req/sec |
-|---|---|
-| **Ingestion tier** | ~125 pods (scale to 300); accept batches; produce to Kafka; **202 Accepted** |
-| **Kafka (Amazon MSK(Managed Streaming for Kafka))** | Buffer; 128+ partitions on `identity-events` |
-| **Consumer tier** | ~64+ session workers; bulk write PostgreSQL; update Redis |
-| **Redis** | Hot session index for IP query |
-| **PostgreSQL (Aurora)** | Durable store; primary for writes, replicas for Query |
-| **Query tier** | Separate 20–50+ pods; **not** on the 1.5M ingest path |
-
-Ingest QPS and firewall query QPS scale **independently**. A POP can run 1.5M ingest req/sec while Query tier serves thousands of SRX/vSRX with a smaller pod count.
+||Old|New|
+|---|---|---|
+|Design|1 process does ingest, buffering, DB writes, and firewall queries|jobs are split, bounded, and scaled independently|
+|1sec Stall|~100k extra items in RAM||
+|10sec Stall|1 million. Memory grows until the process dies.On crash, everything in that queue is gone — it is not on disk||

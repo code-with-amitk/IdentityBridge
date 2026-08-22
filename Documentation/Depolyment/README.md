@@ -14,7 +14,12 @@ cd ~/IdentityBridge
 kubectl config use-context docker-desktop
 ./deploy/local/deploy-docker-desktop.sh
 curl http://ingest.local/health/ready
+
+./deploy/local/revert-local.sh
+# Answer 'y' to remove ingress-nginx if you want a clean slate
 ```
+
+- Containers are not built from a Dockerfile in this repo. Kubernetes pulls already-published images and starts them from Deployment manifests
 
 Detail: [deploy/local/README-docker-desktop.md](../../deploy/local/README-docker-desktop.md)
 
@@ -91,3 +96,21 @@ Your WSL shell / browser
 │      topics: identity-events, identity-catalog, ...      │
 └─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Alternative: Kubernetes Operator (Phase 1)
+
+Instead of applying Phase 1 YAML manually, you can deploy the ingestion tier with an **`IngestionTier`** custom resource and a Go controller.
+
+- Concepts: [Kubernetes Operator](../Kubernetes_Operator/README.md)
+- Commands: [Experiments](../Kubernetes_Operator/Experiments.md)
+- Code: [`operators/ingestion-controller/`](../../operators/ingestion-controller/)
+
+```bash
+cd operators/ingestion-controller
+make install-crd && make run          # terminal 1
+make apply-sample                       # terminal 2 (after Phase 0)
+```
+
+Do **not** mix YAML Phase 1 and operator-managed resources with the same names in one namespace.
