@@ -12,7 +12,7 @@ data:
   topic_events: "identity-events"
   topic_catalog: "identity-catalog"
   topic_heartbeat: "identity-heartbeat"
-  # Producer defaults — consumed by server-ingest Rust app (Phase 5)
+  # Producer defaults — consumed by Go server-ingest
   producer_acks: "1"
   producer_compression: "lz4"
   producer_linger_ms: "10"

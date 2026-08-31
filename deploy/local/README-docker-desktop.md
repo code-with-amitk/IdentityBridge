@@ -69,9 +69,9 @@ kubectl apply -f deploy/phase0/kafka-in-cluster.yaml
 kubectl apply -f deploy/local/overlays/configmap.local.yaml
 kubectl apply -f deploy/local/overlays/secret.local.yaml
 kubectl apply -f deploy/phase1/ingest/serviceaccount.yaml
-kubectl apply -f deploy/phase1/ingest/stub-nginx-configmap.yaml
+./deploy/local/build-ingest-image.sh
 ```
-**Phase 1** — Kafka broker address, secrets, service account, health stub.
+**Phase 1** — Kafka broker address, secrets, service account, Go ingest image.
 
 ```bash
 kubectl apply -f deploy/local/overlays/deployment.docker-desktop.yaml
@@ -137,7 +137,7 @@ On AWS (Phase 1 ALB Ingress), the same Ingress object would be handled by **AWS 
 | Test produce | `kubectl exec -n identity-bridge deploy/kafka -- rpk topic produce identity-events -k 't:ip' <<<'{"test":1}'` |
 | List topics | `kubectl exec -n identity-bridge deploy/kafka -- rpk topic list` |
 
-Collector URLs (when Rust app exists):
+Collector URLs:
 
 ```
 http://ingest.local/ingest/v1/events

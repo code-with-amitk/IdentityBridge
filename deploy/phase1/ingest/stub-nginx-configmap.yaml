@@ -1,3 +1,4 @@
+# Unused after Go server-ingest. Kept only for rollback to the nginx stub.
 apiVersion: v1
 kind: ConfigMap
 metadata:

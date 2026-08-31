@@ -52,7 +52,7 @@ Paths are appended by the ingest client: `/ingest/v1/events`, etc.
 | Layer | Detail |
 |---|---|
 | TLS | Terminated at **ALB** (ACM certificate) |
-| Auth | Bearer token or mTLS — enforced in Rust app (Phase 5); stub nginx accepts all traffic |
+| Auth | Bearer token (`COLLECTOR_API_KEYS`) or mTLS (later). Empty API keys = open (local/dev). |
 
 ---
 
@@ -70,5 +70,4 @@ Same path used by Kubernetes readiness probe.
 
 ## Phase 3 stub behavior
 
-Until Rust `server-ingest` ships, nginx stub returns `200` on all paths.  
-Collectors should not point at production until Phase 5 validates JSON ingest.
+Until the Collector ingest client ships, you can POST JSON directly. Go `server-ingest` validates the body and produces to Kafka.

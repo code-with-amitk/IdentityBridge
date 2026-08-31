@@ -26,14 +26,17 @@ chmod +x deploy/local/create-topics-local.sh
 echo ""
 echo "========== PHASE 1: Ingestion tier =========="
 
+chmod +x deploy/local/build-ingest-image.sh
+./deploy/local/build-ingest-image.sh
+kind load docker-image identity-bridge/server-ingest:latest --name identity-bridge
+
 kubectl apply -f deploy/phase1/ingest/serviceaccount.yaml
 kubectl apply -f deploy/local/overlays/configmap.local.yaml
 kubectl apply -f deploy/local/overlays/secret.local.yaml
-kubectl apply -f deploy/phase1/ingest/stub-nginx-configmap.yaml
-kubectl apply -f deploy/phase1/ingest/deployment.yaml
+kubectl apply -f deploy/local/overlays/deployment.docker-desktop.yaml
 kubectl apply -f deploy/phase1/ingest/service.yaml
 kubectl apply -f deploy/phase1/ingest/pdb.yaml
-kubectl apply -f deploy/phase1/ingest/hpa.yaml
+kubectl apply -f deploy/local/overlays/hpa.docker-desktop.yaml
 kubectl apply -f deploy/local/overlays/networkpolicy.local.yaml
 kubectl apply -f deploy/local/overlays/ingest-edge-configmap.local.yaml
 kubectl apply -f deploy/local/overlays/ingress.local.yaml

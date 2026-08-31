@@ -6,6 +6,7 @@ BROKER="${KAFKA_BROKER:-kafka.identity-bridge.svc.cluster.local:9092}"
 
 create() {
   local topic=$1 parts=$2
+  echo "Creating topic: $topic ($parts partitions)"
   kubectl exec -n identity-bridge deploy/kafka -- \
     rpk topic create "$topic" -p "$parts" --brokers "$BROKER" 2>/dev/null || \
   kubectl exec -n identity-bridge deploy/kafka -- \

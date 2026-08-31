@@ -25,7 +25,8 @@ spec:
       serviceAccountName: server-ingest
       containers:
         - name: server-ingest
-          image: nginx:1.27-alpine
+          image: identity-bridge/server-ingest:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
@@ -36,11 +37,6 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
-          volumeMounts:
-            - name: stub-nginx
-              mountPath: /etc/nginx/conf.d/default.conf
-              subPath: default.conf
-              readOnly: true
           env:
             - name: KAFKA_BROKERS
               valueFrom:
@@ -62,6 +58,21 @@ spec:
                 configMapKeyRef:
                   name: kafka-config
                   key: topic_heartbeat
+            - name: KAFKA_PRODUCER_ACKS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: producer_acks
+            - name: KAFKA_PRODUCER_COMPRESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: producer_compression
+            - name: KAFKA_PRODUCER_LINGER_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: producer_linger_ms
             - name: KAFKA_SCRAM_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -72,10 +83,21 @@ spec:
                 secretKeyRef:
                   name: server-ingest-secrets
                   key: msk_scram_password
+            - name: COLLECTOR_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: server-ingest-secrets
+                  key: collector_api_keys
+            - name: KAFKA_AUTH_MODE
+              value: none
+            - name: KAFKA_TLS
+              value: "false"
             - name: HTTP_BIND
               value: "0.0.0.0:8080"
-            - name: RUST_LOG
+            - name: LOG_LEVEL
               value: info
+            - name: LOG_FORMAT
+              value: json
           livenessProbe:
             httpGet:
               path: /health/live
@@ -86,9 +108,5 @@ spec:
             httpGet:
               path: /health/ready
               port: http
-            initialDelaySeconds: 3
+            initialDelaySeconds: 5
             periodSeconds: 5
-      volumes:
-        - name: stub-nginx
-          configMap:
-            name: server-ingest-stub-nginx

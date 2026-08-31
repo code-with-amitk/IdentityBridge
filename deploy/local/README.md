@@ -47,7 +47,7 @@ flowchart TB
     P1 & P2 -.->|Phase 5 produce| KAFKA
 ```
 
-**Flow:** HTTP → nginx Ingress (port 80) → Ingress rule → Service → ingest pods. Kafka is a separate pod in the same namespace. Stub nginx responds on `/health/*` today; Rust app will produce to Kafka later.
+**Flow:** HTTP → nginx Ingress (port 80) → Ingress rule → Service → Go ingest pods. Kafka is a separate pod in the same namespace. Ingest produces to Kafka after JSON validation.
 
 ---
 

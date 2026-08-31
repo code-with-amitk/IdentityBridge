@@ -13,7 +13,7 @@ Everything to run **`server-ingest`** pods and expose them to Collectors.
 | Was (old) | Now |
 |---|---|
 | Phase 1 config objects | ConfigMap, Secret, ServiceAccount |
-| Phase 2 manifests | Deployment, Service, HPA, PDB, NetworkPolicy, stub nginx |
+| Phase 2 manifests | Deployment, Service, HPA, PDB, NetworkPolicy, Go ingest |
 | Phase 3 edge | Ingress (ALB or nginx), edge ConfigMap, Collector URLs |
 
 All manifests: [`ingest/`](ingest/)
@@ -34,7 +34,7 @@ Or manual Phase 1 only (after Phase 0):
 kubectl apply -f deploy/phase1/ingest/serviceaccount.yaml
 kubectl apply -f deploy/local/overlays/configmap.local.yaml
 kubectl apply -f deploy/local/overlays/secret.local.yaml
-kubectl apply -f deploy/phase1/ingest/stub-nginx-configmap.yaml
+./deploy/local/build-ingest-image.sh
 kubectl apply -f deploy/local/overlays/deployment.docker-desktop.yaml
 kubectl apply -f deploy/phase1/ingest/service.yaml
 kubectl apply -f deploy/phase1/ingest/pdb.yaml
@@ -61,7 +61,7 @@ See [Runbook_README.md](../phase0/Runbook_README.md) or AWS docs:
 kubectl apply -f deploy/phase1/ingest/serviceaccount.yaml
 kubectl apply -f deploy/phase1/ingest/configmap.yaml      # edit brokers first
 kubectl apply -f deploy/phase1/ingest/secret.yaml         # from secret.yaml.example
-kubectl apply -f deploy/phase1/ingest/stub-nginx-configmap.yaml
+# Build/push Go image to your registry, then:
 kubectl apply -f deploy/phase1/ingest/deployment.yaml
 kubectl apply -f deploy/phase1/ingest/service.yaml
 kubectl apply -f deploy/phase1/ingest/pdb.yaml
@@ -100,8 +100,8 @@ Collector URLs: [ingest/collector-endpoints.md](ingest/collector-endpoints.md)
 | `configmap.yaml` | Kafka brokers + topic names (AWS MSK) |
 | `secret.yaml.example` | MSK SCRAM credentials template |
 | `serviceaccount.yaml` | Pod identity (+ optional IRSA) |
-| `stub-nginx-configmap.yaml` | `/health/live`, `/health/ready` for stub |
-| `deployment.yaml` | 8 replicas, nodeSelector ingest (AWS) |
+| `stub-nginx-configmap.yaml` | Unused nginx stub (rollback only) |
+| `deployment.yaml` | 8 replicas, Go `server-ingest` image, nodeSelector ingest (AWS) |
 | `service.yaml` | ClusterIP :8080 |
 | `hpa.yaml` | min 4, max 25, CPU 60% |
 | `pdb.yaml` | minAvailable 80% |
