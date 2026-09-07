@@ -1,6 +1,6 @@
 [package]
 name = "common"
-description = "Shared DTOs for Collector and Server"
+description = "Shared DTOs for the Collector (JSON contract with the Go server)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -4,7 +4,7 @@ Ingestion Tier
 - [Duties](#duties)
   - [1. Authenticate Collector (mTLS or bearer API key scoped to `tenant_id`)](#1-authenticate-collector-mtls-or-bearer-api-key-scoped-to-tenant_id)
   - [2. Validate payload size, schema, required fields](#2-validate-payload-size-schema-required-fields)
-  - [3. Deserialize JSON batch into internal envelope (Rust struct)](#3-deserialize-json-batch-into-internal-envelope-rust-struct)
+  - [3. Deserialize JSON batch into internal envelope (Go struct)](#3-deserialize-json-batch-into-internal-envelope-go-struct)
   - [4. Assign Kafka message key](#4-assign-kafka-message-key)
   - [5. Produce to Kafka asynchronously (idempotent producer)](#5-produce-to-kafka-asynchronously-idempotent-producer)
   - [6. Return **202 Accepted** + `batch_id` after broker ACK (configurable: `acks=1` for speed, `acks=all` for durability)](#6-return-202-accepted--batch_id-after-broker-ack-configurable-acks1-for-speed-acksall-for-durability)
@@ -57,18 +57,18 @@ Ingestion Tier
 **Why it helps:** Kafka and consumers assume structurally valid messages. Early rejection saves broker disk, consumer CPU, and prevents poison messages that would retry indefinitely. Collectors get immediate feedback to fix configuration or bad event normalization.
 
 
-### 3. Deserialize JSON batch into internal envelope (Rust struct)
+### 3. Deserialize JSON batch into internal envelope (Go struct)
 
-- After validation, the HTTP handler parses JSON into a **Kafka envelope** — a Rust struct that wraps metadata plus typed records. This is what the Kafka producer serializes as the message **value** (the partition key is assigned separately in step 4).
+- After validation, the HTTP handler parses JSON into a **Kafka envelope** — a Go struct that wraps metadata plus typed records. This is what the Kafka producer serializes as the message **value** (the partition key is assigned separately in step 4).
 
-```rust
-pub struct IngestEnvelope {
-    pub batch_id: Uuid,
-    pub tenant_id: String,
-    pub collector_id: String,
-    pub received_at: DateTime<Utc>,
-    pub record_type: IngestRecordType,  // Session | Catalog | Heartbeat
-    pub records: Vec<SessionEvent>,     // or Vec<CatalogEvent>
+```go
+type IngestEnvelope struct {
+    BatchID     string
+    TenantID    string
+    CollectorID string
+    ReceivedAt  time.Time
+    RecordType  RecordType  // session | catalog | heartbeat
+    Records     any
 }
 ```
 
@@ -107,7 +107,7 @@ pub struct IngestEnvelope {
 
 ## Kubernets
 ### Capacity per pod
-Based on Rust + Tokio + axum, ALB TLS offload, avg 16 KB body, async Kafka produce:
+Based on Go ingest, ALB TLS offload, avg 16 KB body, Kafka produce:
 ```
 Req/sec per pod | CPU / memory per pod
         8,000   | 2 vCPU, 4 GiB 
@@ -174,7 +174,7 @@ spec:
                 configMapKeyRef:
                   name: kafka-config
                   key: brokers
-            - name: RUST_LOG
+            - name: LOG_LEVEL
               value: info
           livenessProbe:
             httpGet:
@@ -213,7 +213,7 @@ sequenceDiagram
     participant C as Collector
     participant LB as AWS ALB<br/>TLS Termination
     box JIMS Pod(Ingestion Tier)
-    participant H as HTTP Server<br>Tokio Runtime
+    participant H as HTTP Server<br>Go ingest
     participant KP as Kafka Producer
     end
     participant K as Kafka Broker<br/>identity-events Topic
@@ -223,7 +223,7 @@ sequenceDiagram
 
     LB->>H: Batched Json
     Note over H: POST /ingest/v1/identities
-    Note over H: Authenticate Collector<br/>Validate token<br>Validate request(Size, schema, required fields)<br>Deserialize JSON batch(into Rust structures)
+    Note over H: Authenticate Collector<br/>Validate token<br>Validate request(Size, schema, required fields)<br>Deserialize JSON batch(into Go structures)
 
     H->>KP: Produce batch asynchronously
 

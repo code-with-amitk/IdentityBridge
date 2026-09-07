@@ -19,7 +19,7 @@ curl http://ingest.local/health/ready
 # Answer 'y' to remove ingress-nginx if you want a clean slate
 ```
 
-- Containers are not built from a Dockerfile in this repo. Kubernetes pulls already-published images and starts them from Deployment manifests
+- Containers for ingest are built from `server/Dockerfile`. Ingress-nginx and Kafka images are pulled from public registries.
 
 Detail: [deploy/local/README-docker-desktop.md](../../deploy/local/README-docker-desktop.md)
 
@@ -45,7 +45,7 @@ kubectl wait -n identity-bridge --for=condition=ready pod -l app=kafka --timeout
 | `kubectl apply -f deploy/phase1/ingest/serviceaccount.yaml` | ServiceAccount for ingest pods |
 | `kubectl apply -f deploy/local/overlays/configmap.local.yaml` | Kafka bootstrap `kafka.identity-bridge.svc.cluster.local:9092` + topic names |
 | `kubectl apply -f deploy/local/overlays/secret.local.yaml` | Placeholder secrets (no MSK SCRAM locally) |
-| `kubectl apply -f deploy/phase1/ingest/stub-nginx-configmap.yaml` | nginx stub serving `/health/live` and `/health/ready` |
+| `./deploy/local/build-ingest-image.sh` | Build Go image `identity-bridge/server-ingest:latest` |
 | `kubectl apply -f deploy/local/overlays/deployment.docker-desktop.yaml` | **2** ingest pods, no `nodeSelector` (fits single-node Docker Desktop) |
 | `kubectl apply -f deploy/phase1/ingest/service.yaml` | ClusterIP Service on port 8080 |
 | `kubectl apply -f deploy/phase1/ingest/pdb.yaml` | PodDisruptionBudget — keep 80% available during drains |

@@ -30,7 +30,7 @@
                                                          /ingest/v1/*    ▼
 ┌──────────────────────────── AWS Cloud ─────────────────────────────────────────────────┐
 │                                                                                        │
-│  ┌──────────────────────── Rust Identity Server ────────────────────────────────────┐  │
+│  ┌──────────────────────── Go Identity Server ───────────────────────────────────┐  │
 │  │                                                                                  │  │
 │  │  ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────────────┐   │  │
 │  │  │ Ingest API      │      │ Query API       │      │ Session engine + cache  │   │  │
@@ -54,40 +54,24 @@
 
 ## Workspace structure
 
-Monorepo with **collector** and **server** crates sharing types:
+Monorepo: **Collector** is Rust; **Server** is Go. JSON types are duplicated on purpose (`crates/common` ↔ `server/pkg/types`) so the Collector does not depend on the server binary.
 
 ```
 identity-bridge/
-├── Cargo.toml                 # workspace
+├── Cargo.toml                 # collector workspace
 ├── crates/
-│   ├── ib-common/             # shared DTOs: CatalogEvent, SessionEvent, SessionRecord
-│   ├── ib-collector/          # on-prem collector library
-│   │   ├── src/
-│   │   │   ├── ad/
-│   │   │   │   ├── ldap.rs    # LDAP/LDAPS paged sync (ldap3)
-│   │   │   │   └── eventlog.rs
-│   │   │   ├── session/
-│   │   │   │   ├── normalizer.rs
-│   │   │   │   └── fsm.rs
-│   │   │   ├── ingest/
-│   │   │   │   └── client.rs  # POST /ingest/v1/* to server
-│   │   │   ├── store/
-│   │   │   │   └── sqlite.rs  # rusqlite
-│   │   │   ├── api/           # /api/v1/* for Flutter + htmx
-│   │   │   ├── web/           # axum HTML routes + askama/maud templates
-│   │   │   └── auth/
-│   │   └── templates/         # HTML (see UI-design.md)
-│   ├── ib-server/             # AWS identity server (ingest + query)
-│   │   ├── src/
-│   │   │   ├── api_ingest/
-│   │   │   ├── api_query/
-│   │   │   ├── core/
-│   │   │   └── db/
-│   └── ib-collector-bin/      # Windows Service main
-│       └── src/main.rs
+│   ├── common/                # Collector DTOs (JSON contract with Go server)
+│   ├── collector/             # on-prem collector library
+│   └── collector-bin/         # Windows Service main
+├── server/                    # Go AWS identity server
+│   ├── cmd/ingest/
+│   ├── cmd/query/
+│   ├── cmd/consumer-session/
+│   ├── cmd/consumer-catalog/
+│   └── pkg/types/
 ├── configs/
 │   └── collector.example.yaml
-└── web/static/                # CSS, JS for collector admin UI
+└── web/static/
 ```
 
 **Collector libraries (recommended):**
