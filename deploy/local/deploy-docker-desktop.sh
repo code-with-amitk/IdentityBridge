@@ -2,9 +2,9 @@
 # Phase 0 + Phase 1 on Docker Desktop Kubernetes
 set -euo pipefail
 
-#ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-#cd "$ROOT"
-cd "/home"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+#cd "/home"
 NGINX_INGRESS_CONTROLLER_YAML="https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/cloud/deploy.yaml"
 
 CTX="$(kubectl config current-context 2>/dev/null || true)"

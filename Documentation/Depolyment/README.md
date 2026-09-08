@@ -60,9 +60,13 @@ kubectl wait -n identity-bridge --for=condition=ready pod -l app=kafka --timeout
 ## Verify deployment
 
 ```bash
+./deploy-docker-desktop.sh
 kubectl get nodes
 kubectl get pods,svc,ingress,hpa -n identity-bridge
 kubectl get pods -n identity-bridge -l app=server-ingest -o wide
+kubectl logs -n identity-bridge -l app=server-ingest --tail=100
+kubectl logs -n identity-bridge -l app=kafka --tail=100
+kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller --tail=50
 curl http://ingest.local/health/ready          # local
 kubectl describe ingress server-ingest -n identity-bridge   # AWS ALB address
 ```
